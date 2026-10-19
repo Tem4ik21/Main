@@ -1,0 +1,46 @@
+#!/bin/bash
+
+rename_files() {
+    local suffix="$1"
+    local directory="$2"
+
+    if [[ ! -d "$directory" ]]; then
+        echo "Error: directory not found"
+        return 1
+    fi
+
+    shopt -s nullglob dotglob
+
+    for filepath in "$directory"/*; do
+        if [[ ! -f "$filepath" ]]; then
+            continue
+        fi
+
+        filename=$(basename -- "$filepath")
+
+        if [[ "$filename" == *.* && "$filename" != .* ]]; then
+            name="${filename%.*}"
+            extension="${filename##*.}"
+            newname="${name}_${suffix}.${extension}"
+        else
+            newname="${filename}_${suffix}"
+        fi
+
+        newpath="$directory/$newname"
+
+        if [[ -e "$newpath" ]]; then
+            echo "Skipped: $newname already exists"
+            continue
+        fi
+
+        echo "$filename -> $newname"
+        mv -- "$filepath" "$newpath"
+    done
+}
+
+if [[ $# -ne 2 ]]; then
+    echo "Usage: $0 suffix directory"
+    exit 1
+fi
+
+rename_files "$1" "$2"
